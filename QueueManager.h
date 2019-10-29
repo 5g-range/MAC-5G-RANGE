@@ -27,4 +27,5 @@ public:
     ~QueueManager();
     int addSdu(char* sdu, uint16_t n);   //Attempts to add SDU to queue. If queue is full for Tx, returns the index to get PDU. Else returns -1.
     ssize_t getPdu(char* buffer, int index);      //Get full PDU for transmission
+    bool emptyPdu(int index);
 };

@@ -47,7 +47,7 @@ int QueueManager::addSdu(char* sdu, uint16_t n){
 
     if(multiplexers[i]->addSDU(sdu, n, 1)){
         nBytes[i]+=n;
-        cout<<"[QueueManager] SDU added to queue!"<<endl;
+        if(verbose) cout<<"[QueueManager] SDU added to queue!"<<endl;
         return -1;
     }
     return -2; 
@@ -74,5 +74,10 @@ ssize_t QueueManager::getPdu(char* buffer, int index){
     nBytes[index] = 0;
 
     return size;
+}
+
+bool QueueManager::emptyPdu(int index){
+    if(index>=nMultiplexers) return true;
+    return nBytes[index]==0;
 }
 

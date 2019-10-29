@@ -28,8 +28,25 @@ void Equipment5G::encoding(){
         //Clear buffer
         bzero(buf,sizeof(buf));
 
+        //Timeout definition
+        future<ssize_t> fut = std::async(std::launch::async, &TunInterface::readTunInterface, tunIf, buf, MAXLINE);
+        chrono::milliseconds span(10);  //10ms timeout
+
+        while(fut.wait_for(span)==future_status::timeout){
+            if(q1->emptyPdu(0)) continue;
+            
+            if(verbose) cout<<"[Equipment5G] Timeout!"<<endl;
+
+            bzero(buf2, sizeof(buf2));
+
+            ssize_t nread2 = q1->getPdu(buf2, 0);
+
+            for(int i=0;i<attachedEquipments;i++)
+                l1->sendPdu(buf2, nread2, (l1->getPorts())[i]);
+
+        }
         //Receive a packet a packet from TUN
-        ssize_t nread = tunIf->readTunInterface(buf, MAXLINE);
+        ssize_t nread = fut.get();
         if(nread==0)    //EOF
             break;
 
@@ -62,10 +79,10 @@ void Equipment5G::encoding(){
 
         bzero(buf2, sizeof(buf2));
 
-        ssize_t nread2 = q1->getPdu(buf2, val);
+            ssize_t nread2 = q1->getPdu(buf2, val);
 
-        for(int i=0;i<attachedEquipments;i++)
-            l1->sendPdu(buf2, nread2, (l1->getPorts())[i]);
+            for(int i=0;i<attachedEquipments;i++)
+                l1->sendPdu(buf2, nread2, (l1->getPorts())[i]);
         
         q1->addSdu(buf,nread);
     }
